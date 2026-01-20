@@ -13,7 +13,6 @@ export default function TemplatesPage() {
   const [templates, setTemplates] = useState([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
 
-  // Fetch templates on load
   useEffect(() => {
     fetchTemplates();
   }, []);
@@ -54,13 +53,12 @@ export default function TemplatesPage() {
 
     alert("Template saved");
 
-    // Reset form
     setName("");
     setHeader("");
     setBody("");
     setButtons([]);
+    setSelectedTemplateId("");
 
-    // Refresh dropdown
     fetchTemplates();
   };
 
@@ -77,94 +75,176 @@ export default function TemplatesPage() {
   };
 
   return (
-    <div style={{ display: "flex", gap: 40, padding: 20 }}>
+    <div style={styles.page}>
+      <div style={styles.container}>
 
-      {/* LEFT: TEMPLATE FORM */}
-      <div style={{ width: 400 }}>
-        <h2>Create / Edit WhatsApp Template</h2>
+        {/* LEFT CARD – TEMPLATE FORM */}
+        <div style={styles.card}>
+          <h2 style={styles.heading}>Create / Edit Template</h2>
 
-        <input
-          placeholder="Template Name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          style={{ width: "100%" }}
-        />
+          <div style={styles.field}>
+            <label style={styles.label}>Template Name</label>
+            <input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Welcome Template"
+              style={styles.input}
+            />
+          </div>
 
-        <br /><br />
+          <div style={styles.field}>
+            <label style={styles.label}>Header (optional)</label>
+            <input
+              value={header}
+              onChange={e => setHeader(e.target.value)}
+              placeholder="Welcome 👋"
+              style={styles.input}
+            />
+          </div>
 
-        <input
-          placeholder="Header (optional)"
-          value={header}
-          onChange={e => setHeader(e.target.value)}
-          style={{ width: "100%" }}
-        />
+          <div style={styles.field}>
+            <label style={styles.label}>Message Body</label>
+            <textarea
+              rows={5}
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              placeholder="Hi {{name}}, welcome to our service."
+              style={styles.textarea}
+            />
+          </div>
 
-        <br /><br />
+          <div style={styles.field}>
+            <label style={styles.label}>Buttons</label>
+            {buttons.map((btn, i) => (
+              <input
+                key={i}
+                value={btn.text}
+                placeholder={`Button ${i + 1}`}
+                onChange={e => {
+                  const copy = [...buttons];
+                  copy[i].text = e.target.value;
+                  setButtons(copy);
+                }}
+                style={{ ...styles.input, marginBottom: 6 }}
+              />
+            ))}
+            <button onClick={addButton} style={styles.secondaryButton}>
+              + Add Button
+            </button>
+          </div>
 
-        <textarea
-          placeholder="Message Body"
-          rows={5}
-          value={body}
-          onChange={e => setBody(e.target.value)}
-          style={{ width: "100%" }}
-        />
+          <button onClick={saveTemplate} style={styles.primaryButton}>
+            Save Template
+          </button>
+        </div>
 
-        <br /><br />
+        {/* RIGHT CARD – PREVIEW */}
+        <div style={styles.card}>
+          <h2 style={styles.heading}>Preview</h2>
 
-        <h4>Buttons</h4>
-        {buttons.map((btn, i) => (
-          <input
-            key={i}
-            placeholder={`Button ${i + 1}`}
-            value={btn.text}
-            onChange={e => {
-              const copy = [...buttons];
-              copy[i].text = e.target.value;
-              setButtons(copy);
-            }}
-            style={{ width: "100%", marginBottom: 6 }}
-          />
-        ))}
+          <div style={styles.field}>
+            <label style={styles.label}>Select Existing Template</label>
+            <select
+              value={selectedTemplateId}
+              onChange={e => handleTemplateSelect(e.target.value)}
+              style={styles.input}
+            >
+              <option value="">Select template</option>
+              {templates.map(t => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <button onClick={addButton}>Add Button</button>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <WhatsAppPreview
+              header={header}
+              body={body}
+              buttons={buttons}
+            />
+          </div>
+        </div>
 
-        <br /><br />
-        <button onClick={saveTemplate}>Save Template</button>
       </div>
-
-      {/* RIGHT: PREVIEW + TEMPLATE SELECT */}
-      <div>
-        <h3>WhatsApp Preview</h3>
-
-        <br />
-
-        <select
-          value={selectedTemplateId}
-          onChange={e => handleTemplateSelect(e.target.value)}
-          style={{ width: 320 }}
-        >
-          <option value="">Select saved template</option>
-          {templates.map(t => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
-
-        <br /><br />
-
-        <WhatsAppPreview
-          header={header}
-          body={body}
-          buttons={buttons}
-        />
-
-        {/* <br />
-
-        <h4>Preview Existing Template</h4> */}
-        
-      </div>
-
     </div>
   );
 }
+
+/* ---------------- STYLES ---------------- */
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    background: "#f4f6f8",
+    padding: 20,
+  },
+  container: {
+    maxWidth: 1100,
+    margin: "0 auto",
+    display: "flex",
+    gap: 30,
+    flexWrap: "wrap",
+  },
+  card: {
+    background: "#fff",
+    flex: 1,
+    minWidth: 320,
+    padding: 24,
+    borderRadius: 10,
+    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+  },
+  heading: {
+    marginBottom: 20,
+    fontSize: 20,
+    fontWeight: 600,
+    color: "#111",
+  },
+  field: {
+    marginBottom: 16,
+  },
+  label: {
+    display: "block",
+    marginBottom: 6,
+    fontSize: 13,
+    fontWeight: 500,
+    color: "#333",
+  },
+  input: {
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: 6,
+    border: "1px solid #ccc",
+    fontSize: 14,
+    outline: "none",
+  },
+  textarea: {
+    width: "100%",
+    padding: "10px 12px",
+    borderRadius: 6,
+    border: "1px solid #ccc",
+    fontSize: 14,
+    resize: "vertical",
+  },
+  primaryButton: {
+    width: "100%",
+    padding: "12px",
+    background: "#25D366",
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: 600,
+    border: "none",
+    borderRadius: 6,
+    cursor: "pointer",
+  },
+  secondaryButton: {
+    marginTop: 8,
+    padding: "8px 12px",
+    // background: "#eee",
+    border: "none",
+    borderRadius: 6,
+    cursor: "pointer",
+    fontSize: 13,
+  },
+};
