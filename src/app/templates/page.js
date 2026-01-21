@@ -3,13 +3,11 @@ import { useEffect, useState } from "react";
 import WhatsAppPreview from "@/components/WhatsAppPreview";
 
 export default function TemplatesPage() {
-  // Form state
   const [name, setName] = useState("");
   const [header, setHeader] = useState("");
   const [body, setBody] = useState("");
   const [buttons, setButtons] = useState([]);
 
-  // Existing templates
   const [templates, setTemplates] = useState([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
 
@@ -31,35 +29,68 @@ export default function TemplatesPage() {
     setButtons([...buttons, { type: "reply", text: "" }]);
   };
 
+  const removeButton = (index) => {
+    const copy = [...buttons];
+    copy.splice(index, 1);
+    setButtons(copy);
+  };
+
   const saveTemplate = async () => {
     if (!name || !body) {
       alert("Template name and body are required");
       return;
     }
 
+    const isEdit = Boolean(selectedTemplateId);
+
     await fetch("/api/templates", {
-      method: "POST",
+      method: isEdit ? "PUT" : "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
       },
-      body: JSON.stringify({
-        name,
-        header,
-        body,
-        buttons,
-      }),
+      body: JSON.stringify(
+        isEdit
+          ? { id: selectedTemplateId, name, header, body, buttons }
+          : { name, header, body, buttons }
+      ),
     });
 
-    alert("Template saved");
+    alert(isEdit ? "Template updated" : "Template created");
 
+    resetForm();
+    fetchTemplates();
+  };
+
+  const deleteTemplate = async () => {
+    if (!selectedTemplateId) return;
+
+    const confirmDelete = confirm(
+      "Are you sure you want to delete this template?"
+    );
+    if (!confirmDelete) return;
+
+    await fetch("/api/templates", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+      },
+      body: JSON.stringify({ id: selectedTemplateId }),
+    });
+
+    alert("Template deleted");
+
+    resetForm();
+    fetchTemplates();
+  };
+
+  const resetForm = () => {
     setName("");
     setHeader("");
     setBody("");
     setButtons([]);
     setSelectedTemplateId("");
-
-    fetchTemplates();
   };
 
   const handleTemplateSelect = (id) => {
@@ -78,26 +109,26 @@ export default function TemplatesPage() {
     <div style={styles.page}>
       <div style={styles.container}>
 
-        {/* LEFT CARD – TEMPLATE FORM */}
+        {/* LEFT CARD */}
         <div style={styles.card}>
-          <h2 style={styles.heading}>Create / Edit Template</h2>
+          <h2 style={styles.heading}>
+            {selectedTemplateId ? "Edit Template" : "Create Template"}
+          </h2>
 
           <div style={styles.field}>
             <label style={styles.label}>Template Name</label>
             <input
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="Welcome Template"
               style={styles.input}
             />
           </div>
 
           <div style={styles.field}>
-            <label style={styles.label}>Header (optional)</label>
+            <label style={styles.label}>Header</label>
             <input
               value={header}
               onChange={e => setHeader(e.target.value)}
-              placeholder="Welcome 👋"
               style={styles.input}
             />
           </div>
@@ -108,37 +139,68 @@ export default function TemplatesPage() {
               rows={5}
               value={body}
               onChange={e => setBody(e.target.value)}
-              placeholder="Hi {{name}}, welcome to our service."
               style={styles.textarea}
             />
           </div>
 
           <div style={styles.field}>
             <label style={styles.label}>Buttons</label>
+
             {buttons.map((btn, i) => (
-              <input
-                key={i}
-                value={btn.text}
-                placeholder={`Button ${i + 1}`}
-                onChange={e => {
-                  const copy = [...buttons];
-                  copy[i].text = e.target.value;
-                  setButtons(copy);
-                }}
-                style={{ ...styles.input, marginBottom: 6 }}
-              />
+              <div key={i} style={{ display: "flex", gap: 8 }}>
+                <input
+                  value={btn.text}
+                  onChange={e => {
+                    const copy = [...buttons];
+                    copy[i].text = e.target.value;
+                    setButtons(copy);
+                  }}
+                  style={{ ...styles.input, flex: 1 }}
+                />
+                <button
+                  onClick={() => removeButton(i)}
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    color: "red",
+                    cursor: "pointer",
+                    fontSize: 18,
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
             ))}
+
             <button onClick={addButton} style={styles.secondaryButton}>
               + Add Button
             </button>
           </div>
 
           <button onClick={saveTemplate} style={styles.primaryButton}>
-            Save Template
+            {selectedTemplateId ? "Update Template" : "Save Template"}
           </button>
+
+          {selectedTemplateId && (
+            <button
+              onClick={deleteTemplate}
+              style={{
+                marginTop: 10,
+                width: "100%",
+                padding: "10px",
+                background: "#ff4d4f",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                cursor: "pointer",
+              }}
+            >
+              Delete Template
+            </button>
+          )}
         </div>
 
-        {/* RIGHT CARD – PREVIEW */}
+        {/* RIGHT CARD */}
         <div style={styles.card}>
           <h2 style={styles.heading}>Preview</h2>
 
