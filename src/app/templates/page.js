@@ -1,8 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import WhatsAppPreview from "@/components/WhatsAppPreview";
+import { useRouter } from "next/navigation";
 
 export default function TemplatesPage() {
+
+  const router = useRouter();
+
   const [name, setName] = useState("");
   const [header, setHeader] = useState("");
   const [body, setBody] = useState("");
@@ -227,6 +231,25 @@ export default function TemplatesPage() {
               buttons={buttons}
             />
           </div>
+
+          <div style={{ marginTop: 20, textAlign: "center" }}>
+            <button
+              onClick={() => router.push("/send")}
+              style={{
+                padding: "10px 16px",
+                background: "#1677ff",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                cursor: "pointer",
+                fontSize: 14,
+                fontWeight: 500,
+              }}
+            >
+              Go to Send Message →
+            </button>
+          </div>
+
         </div>
 
       </div>

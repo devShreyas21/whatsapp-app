@@ -1,7 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SendPage() {
+
+  const router = useRouter();
+
   const [templates, setTemplates] = useState([]);
   const [templateId, setTemplateId] = useState("");
   const [phone, setPhone] = useState("");
@@ -49,6 +53,22 @@ export default function SendPage() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
+
+        <button
+          onClick={() => router.push("/")}
+          style={{
+            marginBottom: 10,
+            background: "transparent",
+            border: "none",
+            color: "#1677ff",
+            cursor: "pointer",
+            fontSize: 13,
+            padding: 0,
+          }}
+        >
+          ← Back to Templates
+        </button>
+
         <h2 style={styles.heading}>Send WhatsApp Message</h2>
 
         {/* Template */}
